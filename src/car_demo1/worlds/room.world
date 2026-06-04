@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="room">
+    
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <!-- 4面墙壁 -->
+    <model name="wall_back">
+      <static>true</static>
+      <pose>0 -3.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box size="6.0 0.2 1.0"/></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box size="6.0 0.2 1.0"/></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="wall_front">
+      <static>true</static>
+      <pose>0 3.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box size="6.0 0.2 1.0"/></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box size="6.0 0.2 1.0"/></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="wall_left">
+      <static>true</static>
+      <pose>-3.0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box size="0.2 6.0 1.0"/></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box size="0.2 6.0 1.0"/></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="wall_right">
+      <static>true</static>
+      <pose>3.0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box size="0.2 6.0 1.0"/></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box size="0.2 6.0 1.0"/></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 障碍物 1：绿色箱子 -->
+    <model name="box_1">
+      <static>true</static>
+      <pose>-1.5 1.0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box size="0.6 0.6 0.5"/></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box size="0.6 0.6 0.5"/></geometry>
+          <material><ambient>0.2 0.8 0.2 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    
+    <!-- 障碍物 2：红色圆柱 -->
+    <model name="cylinder_1">
+      <static>true</static>
+      <pose>1.5 -1.0 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><cylinder radius="0.4" height="0.6"/></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><cylinder radius="0.4" height="0.6"/></geometry>
+          <material><ambient>0.8 0.2 0.2 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

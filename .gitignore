@@ -1,3 +1,23 @@
 build/
 install/
 log/
+# 忽略 src 下的编译、安装、日志和 IDE 配置目录
+src/build/
+src/install/
+src/log/
+src/.vscode/
+.vscode/
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 临时绘图文件
+*.gv
+*.pdf
+*.bak
+*.backup
+*.new
+
+# 地图文件（如果需要版本控制可不加，但通常很大）
+# *.pgm
+# *.yaml

@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="simple_obstacles">
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+
+    <model name="obstacle_red">
+      <static>true</static>
+      <pose>1.5 0 0.1 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.3 0.3 0.2</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.3 0.3 0.2</size></box></geometry>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="obstacle_green">
+      <static>true</static>
+      <pose>1.0 -1.2 0.1 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.2</radius><length>0.3</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.2</radius><length>0.3</length></cylinder></geometry>
+          <material><ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="obstacle_blue">
+      <static>true</static>
+      <pose>1.2 1.0 0.1 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.4 0.4 0.2</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.4 0.4 0.2</size></box></geometry>
+          <material><ambient>0 0 1 1</ambient><diffuse>0 0 1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>
