@@ -1,38 +1,42 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
+from launch.actions import (
+    IncludeLaunchDescription, DeclareLaunchArgument, TimerAction, OpaqueFunction
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+import xacro
 
 
-def generate_launch_description():
+def launch_setup(context, *args, **kwargs):
     pkg_ros_car = get_package_share_directory('ros_car')
-    urdf_file = os.path.join(pkg_ros_car, 'urdf', 'ros_car.urdf')
+    use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower() == 'true'
+    standalone = LaunchConfiguration('standalone').perform(context).lower() == 'true'
+
+    urdf_file = os.path.join(pkg_ros_car, 'urdf', 'ros_car.urdf.xacro')
     world_file = os.path.join(pkg_ros_car, 'worlds', 'fishbot.world')
     rviz_config = os.path.join(pkg_ros_car, 'config', 'rviz_config.rviz')
 
-    spawn_x = LaunchConfiguration('spawn_x', default='-0.02')
-    spawn_y = LaunchConfiguration('spawn_y', default='0.10')
+    spawn_x = LaunchConfiguration('spawn_x').perform(context)
+    spawn_y = LaunchConfiguration('spawn_y').perform(context)
 
-    with open(urdf_file, 'r') as f:
-        robot_description = f.read()
+    doc = xacro.process_file(urdf_file, mappings={
+        'use_sim': 'true' if use_sim_time else 'false',
+    })
+    robot_description = doc.toxml()
+
+    urdf_spawn_file = '/tmp/ros_car_spawn.urdf'
+    with open(urdf_spawn_file, 'w') as f:
+        f.write(robot_description)
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
         parameters=[{'robot_description': robot_description,
-                     'use_sim_time': True}]
-    )
-
-    joint_state_publisher_node = Node(
-        package='ros_car',
-        executable='sim_joint_state_publisher.py',
-        name='sim_joint_state_publisher',
-        output='screen',
-        parameters=[{'use_sim_time': True, 'rate': 50.0}]
+                     'use_sim_time': use_sim_time}]
     )
 
     map_odom_tf_node = Node(
@@ -44,50 +48,73 @@ def generate_launch_description():
         output='screen'
     )
 
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        arguments=['-d', rviz_config],
-        output='screen',
-        parameters=[{'use_sim_time': True}],
-        additional_env={'MESA_GL_VERSION_OVERRIDE': '3.3'}
-    )
+    actions = []
 
-    return LaunchDescription([
-        DeclareLaunchArgument('spawn_x', default_value='-0.02'),
-        DeclareLaunchArgument('spawn_y', default_value='0.10'),
+    if standalone:
+        actions.append(map_odom_tf_node)
 
-        map_odom_tf_node,
+    if use_sim_time:
+        joint_state_publisher_node = Node(
+            package='ros_car',
+            executable='sim_joint_state_publisher.py',
+            name='sim_joint_state_publisher',
+            output='screen',
+            parameters=[{'use_sim_time': True, 'rate': 50.0}]
+        )
 
-        IncludeLaunchDescription(
+        rviz_node = Node(
+            package='rviz2',
+            executable='rviz2',
+            arguments=['-d', rviz_config],
+            output='screen',
+            parameters=[{'use_sim_time': True}],
+            additional_env={'MESA_GL_VERSION_OVERRIDE': '3.3'}
+        )
+
+        actions.append(IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 get_package_share_directory('gazebo_ros'),
                 '/launch', '/gzserver.launch.py'
             ]),
             launch_arguments={'world': world_file}.items()
-        ),
-        IncludeLaunchDescription(
+        ))
+        actions.append(IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 get_package_share_directory('gazebo_ros'),
                 '/launch', '/gzclient.launch.py'
             ])
-        ),
+        ))
 
-        TimerAction(
+        actions.append(TimerAction(
             period=2.0,
             actions=[Node(
                 package='gazebo_ros',
                 executable='spawn_entity.py',
-                arguments=['-entity', 'ros_car', '-file', urdf_file,
+                arguments=['-entity', 'ros_car', '-file', urdf_spawn_file,
                            '-x', spawn_x, '-y', spawn_y, '-z', '0.18'],
                 output='screen'
             )]
-        ),
+        ))
 
-        TimerAction(
+        actions.append(TimerAction(
             period=4.0,
             actions=[robot_state_publisher_node,
                      joint_state_publisher_node,
                      rviz_node]
-        ),
+        ))
+    else:
+        actions.append(robot_state_publisher_node)
+
+    return actions
+
+
+def generate_launch_description():
+    return LaunchDescription([
+        DeclareLaunchArgument('use_sim_time', default_value='true',
+                              description='Use simulation time and Gazebo (false for real car)'),
+        DeclareLaunchArgument('standalone', default_value='true',
+                              description='Running standalone (publish map->odom; false when included by nav/mapping)'),
+        DeclareLaunchArgument('spawn_x', default_value='-0.02'),
+        DeclareLaunchArgument('spawn_y', default_value='0.10'),
+        OpaqueFunction(function=launch_setup),
     ])

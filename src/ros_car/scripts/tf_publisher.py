@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Publish all TF transforms directly from URDF.
+Publish all TF transforms directly from URDF/xacro.
 Publishes /tf for all joints (both fixed and movable) and /robot_description for RViz.
 """
 import rclpy
@@ -74,13 +74,22 @@ class URDFTfPublisher(Node):
     def __init__(self):
         super().__init__('urdf_tf_publisher')
         self.declare_parameter('urdf_file', '')
+        self.declare_parameter('use_sim', True)
         urdf_file = self.get_parameter('urdf_file').value
+        use_sim = self.get_parameter('use_sim').value
         if not urdf_file:
             self.get_logger().error('urdf_file parameter not set')
             return
 
-        with open(urdf_file, 'r') as f:
-            urdf_content = f.read()
+        if urdf_file.endswith('.xacro'):
+            import xacro
+            doc = xacro.process_file(urdf_file, mappings={
+                'use_sim': 'true' if use_sim else 'false',
+            })
+            urdf_content = doc.toxml()
+        else:
+            with open(urdf_file, 'r') as f:
+                urdf_content = f.read()
 
         # Publish robot_description for RViz RobotModel
         qos = QoSProfile(depth=1,
@@ -94,8 +103,7 @@ class URDFTfPublisher(Node):
 
         self.tf_broadcaster = TransformBroadcaster(self)
 
-        tree = ET.parse(urdf_file)
-        root = tree.getroot()
+        root = ET.fromstring(urdf_content)
 
         self.fixed_joints = []
         self.movable_joints = []
