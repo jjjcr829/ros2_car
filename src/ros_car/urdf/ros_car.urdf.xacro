@@ -1,5 +1,7 @@
 <?xml version="1.0" ?>
-<robot name="ros_car">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ros_car">
+
+  <xacro:property name="use_sim" value="true"/>
 
   <!-- ======== Materials ======== -->
   <material name="blue">  <color rgba="0.2 0.5 0.8 1.0"/></material>
@@ -28,9 +30,11 @@
     </inertial>
   </link>
 
+  <xacro:if value="${use_sim}">
   <gazebo reference="base_link">
     <mu1>0.5</mu1><mu2>0.5</mu2>
   </gazebo>
+  </xacro:if>
 
   <!-- ============================================================ -->
   <!--  LASER SENSOR                                                -->
@@ -79,6 +83,7 @@
     <origin rpy="0 0 0" xyz="0 0 0.04"/>
   </joint>
 
+  <xacro:if value="${use_sim}">
   <gazebo reference="laser_link">
     <sensor name="laser" type="ray">
       <always_on>true</always_on>
@@ -111,6 +116,7 @@
       </plugin>
     </sensor>
   </gazebo>
+  </xacro:if>
 
   <!-- ============================================================ -->
   <!--  IMU SENSOR                                                  -->
@@ -137,6 +143,7 @@
     <origin rpy="0 0 0" xyz="0 0 0.02"/>
   </joint>
 
+  <xacro:if value="${use_sim}">
   <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
       <always_on>true</always_on>
@@ -148,6 +155,7 @@
       </plugin>
     </sensor>
   </gazebo>
+  </xacro:if>
 
   <!-- ============================================================ -->
   <!--  DUMMY STEERING WHEEL (cosmetic)                             -->
@@ -318,6 +326,7 @@
   </joint>
 
   <!-- Wheel friction for Gazebo -->
+  <xacro:if value="${use_sim}">
   <gazebo reference="left_front_link">
     <mu1>1.0</mu1><mu2>1.0</mu2>
     <material>Gazebo/Black</material>
@@ -334,10 +343,12 @@
     <mu1>1.0</mu1><mu2>1.0</mu2>
     <material>Gazebo/Black</material>
   </gazebo>
+  </xacro:if>
 
   <!-- ============================================================ -->
   <!--  ACKERMANN DRIVE CONTROLLER                                  -->
   <!-- ============================================================ -->
+  <xacro:if value="${use_sim}">
   <gazebo>
     <plugin filename="libgazebo_ros_ackermann_drive.so" name="ackermann_controller">
       <update_rate>50</update_rate>
@@ -371,5 +382,6 @@
       <robot_base_frame>base_link</robot_base_frame>
     </plugin>
   </gazebo>
+  </xacro:if>
 
 </robot>
